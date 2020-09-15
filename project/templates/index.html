@@ -1,0 +1,13 @@
+<!-- templates/index.html -->
+
+{% extends "base.html" %}
+
+{% block content %}
+<h1 class="title">
+  PDVigil Sensor Manager
+</h1>
+<h2 class="subtitle">
+  Monitor the Health of Power Grid!
+</h2>
+<img src="{{url_for('static', filename='HFCT_Sensor.png')}}" align="middle" />
+{% endblock %}
