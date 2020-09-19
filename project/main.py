@@ -1,9 +1,14 @@
 # main.py
+import threading
+from datetime import datetime
+import time
 import numpy as np
 import re
 from .models import PhaseDots
 from .models import WaveForm
+from .models import PDWave
 from . import db
+import csv
 from flask import Blueprint, render_template
 from flask_login import login_required, current_user
 
@@ -13,6 +18,53 @@ main = Blueprint('main', __name__)
 def index():
 	return render_template('index.html')
 
+class StoppableThread (threading.Thread):
+    def __init__(self, target, name):
+        super (StoppableThread, self).__init__(target = target, name = name)
+        self._stop = threading.Event ()
+    def run (self):
+        while not self._stop.is_set ():
+            time.sleep (1)
+            print (threading.currentThread (). getName () + ':' + str (datetime.today ()))
+    def stop (self):
+        self._stop.set ()
+    def stopped (self):
+        return self._stop.isSet ()
+def get_thread_by_name (name):
+    threads = threading.enumerate ()
+    for thread in threads:
+        if thread.getName () == name:
+            return thread
+    return None
+
+@main.route('/start')
+def start ():
+    name = "Acquisition"
+    if name:
+        if not get_thread_by_name (name):
+            db.session.query(PDWave).delete()
+            db.session.commit()
+            f = open("D:\\PYSpace\\PDVigil\\project\\static\\wave_form.csv", "r")
+            Lines = f.readlines() 
+            for line in Lines:
+            	row=line.split(',',2)
+            	pdwave=PDWave(phase=int(row[0]), peak=int(row[1]), data=row[2].strip("\n"))
+            	db.session.add(pdwave)
+            db.session.commit()
+            f.close
+            th = StoppableThread (target = StoppableThread, name = name)
+            th.start ()
+    return render_template('profile.html', name=current_user.name)
+	
+@main.route ('/stop')
+def stop ():
+    name = "Acquisition"
+    if name:
+        thread = get_thread_by_name (name)
+        if thread:
+            thread.stop ()
+    return render_template('profile.html', name=current_user.name)
+	
 @main.route('/profile')
 @login_required
 def profile():
@@ -28,22 +80,21 @@ def chart():
 	phase = []
 	amplitude = []
 	legend = 'PDChart'
-	phaseDots=PhaseDots.query.all()
-
+	#phaseDots=PhaseDots.query.all()
+	phaseDots=PDWave.query.all()
+	
 	for phaseDot in phaseDots:
 		phase.append(phaseDot.phase)
 		amplitude.append({'x': phaseDot.phase, 'y': phaseDot.peak})
-	##print(amplitude)
-	ugly_blob = str(amplitude).replace('\'', '')
-	#print('ugly_blob')
-	#print(ugly_blob)
+	ugly_blob = re.sub("[']", '', str(amplitude))
 	return render_template('chart.html', values=ugly_blob, labels=s, phases=t,legend=legend)
 	
 @main.route("/waveform")
 @login_required
 def waveform():
 	xrange = np.arange (0, 512, 1)
-	qs = WaveForm.query.first()
+	#qs = WaveForm.query.first()
+	qs = PDWave.query.first()
 	yrange={qs.data}
 	ugly_blob = str(yrange).replace("'", "")
 	ugly_blob1= re.sub("[{]","[",ugly_blob)
@@ -55,10 +106,26 @@ def waveform():
 @login_required
 def fftchart():
 	xrange = np.arange (0, 512, 1)
-	qs = WaveForm.query.first()
+	#qs = WaveForm.query.first()
+	qs = PDWave.query.first()
 	yrange={qs.data}
 	ugly_blob = str(yrange).replace("'", "")
-	ugly_blob1= re.sub("[{]","[",ugly_blob)
-	ugly_blob2= re.sub("[}]","]",ugly_blob1)
-	print(ugly_blob2)
-	return render_template('waveform.html', values=ugly_blob2, labels=xrange,legend='FFTChart')
+	ugly_blob1= re.sub("[{]","",ugly_blob)
+	ugly_blob2= re.sub("[}]","",ugly_blob1)	
+	list=ugly_blob2.split(",")
+	x = []
+	for i in list:
+		x.append(int(i))
+	w = np.fft.fft(x)
+	z =np.abs(w[0:256])
+	#freqs = np.fft.fftfreq(len(x))
+	height="["
+	for s in z:
+		height+=str(s)
+		height+=","
+	height+="]"
+	print(len(w))
+	print(w)
+	print("...............................")
+	print(height)
+	return render_template('waveform.html', values=height, labels=50/256*xrange[0:256],legend='FFTChart')

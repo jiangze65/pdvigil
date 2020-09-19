@@ -1,5 +1,5 @@
 # models.py
-
+import datetime
 from flask_login import UserMixin
 from . import db
 
@@ -15,3 +15,9 @@ class PhaseDots(db.Model):
 class WaveForm(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     data = db.Column(db.String)
+class PDWave(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    phase = db.Column(db.Integer)
+    peak = db.Column(db.Integer)
+    data = db.Column(db.String)
+    upt_time = db.Column(db.DateTime, default=datetime.datetime.now())

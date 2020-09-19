@@ -1,17 +1,13 @@
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <title>Partial Discharge Monitoring Chart</title>
-    <!-- import plugin script -->
-    <script src='static/Chart.min.js'></script>
-  </head>
-  <body>
-    <h1>PD Sensor #1</h1>
+ <!-- templates/chart.html -->
+
+{% extends "base.html" %}
+
+{% block content %}
+
+ <h1>PD Sensor #1</h1>
     <!-- bar chart canvas element -->
     <canvas id="myChart" width="600" height="400"></canvas>
     <p id="pointSelected">Point selected:</p>
-
     <script>
       // Global parameters:
       // do not resize the chart canvas when its container does (keep at 600x400px)
@@ -91,6 +87,4 @@
         pointSelected.innerHTML = 'Point selected... index: ' + activePoint[0]._index;
       };
     </script>
-
-  </body>
-</html>
+{% endblock %}

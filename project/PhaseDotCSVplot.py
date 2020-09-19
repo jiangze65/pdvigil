@@ -1,6 +1,5 @@
 import matplotlib.pyplot as plt
 import numpy as np
-import csv
 
 t = np.arange (0.0, 2000.0, 10.0)
 s = 512*np.sin(2*np.pi*(t/2000.0))
@@ -11,8 +10,6 @@ amplitude = []
 f = open("PhaseDots.csv", "r")
 
 with f:
-    csv_reader = csv.reader(f)
-    line_count = 0
     for row in csv_reader:
         if line_count == 0:
             print(row)

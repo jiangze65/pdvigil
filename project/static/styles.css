@@ -1,0 +1,35 @@
+.navbar {
+  width: inherit;
+  height: 36px;
+  background-color: #000000;
+}
+#navbar-items {
+  font-size: 14px;
+  font-family: georgia;
+  text-align: center;
+}
+
+#navbar-items div {
+  width: 119px;
+  float: left;
+  padding: 10px 0;
+  background-color: inherit;
+}
+#navbar-items a {
+  color: #ffffff;
+}
+
+.container::after {
+  content:"";
+  clear: both;
+  display: table;
+}
+
+canvas {
+  width: 45%;
+  padding: 5px;
+  margin: 1px;
+  float: left;
+  border: 1px solid #484848;
+  display: flex;
+}

@@ -1,0 +1,65 @@
+<!-- templates/base.html -->
+<!DOCTYPE html>
+<html lang=en>>
+<head>
+  <meta charset='utf-8'>
+  <title>PDVigil</title>
+  <link rel="stylesheet" href="static/styles.css">
+</head>
+<body>
+   <div class='navbar'>
+    <nav id='navbar-items'>
+                    <a href="{{ url_for('main.index') }}>
+                        Home
+                    </a>
+                    {% if current_user.is_authenticated %}
+                    <a href="{{ url_for('main.profile') }}>
+                        Profile
+                    </a>
+					{% endif %}
+                    {% if current_user.is_authenticated %}
+                    <a href="{{ url_for('main.chart') }}>
+                        Chart
+                    </a>							
+                    {% endif %}
+					{% if current_user.is_authenticated %}
+                    <a href="{{ url_for('main.waveform') }}>
+                        WaveForm
+                    </a>							
+                    {% endif %}
+					{% if current_user.is_authenticated %}
+                    <a href="{{ url_for('main.fftchart') }}>
+                        FFT Chart
+                    </a>							
+                    {% endif %}
+					{% if current_user.is_authenticated %}
+                    <a href="{{ url_for('main.start') }}>
+                        Start
+                    </a>							
+                    {% endif %}
+					{% if current_user.is_authenticated %}
+                    <a href="{{ url_for('main.stop') }}>
+                        Stop
+                    </a>							
+                    {% endif %}							
+                    {% if not current_user.is_authenticated %}
+                    <a href="{{ url_for('auth.login') }}>
+                        Login
+                    </a>
+                    <a href="{{ url_for('auth.signup') }}>
+                        Sign Up
+                    </a>
+                    {% endif %}
+                    {% if current_user.is_authenticated %}
+                    <a href="{{ url_for('auth.logout') }}>
+                        Logout
+                    </a>
+                    {% endif %}
+    </nav>
+  </div>
+  <div class='container'>
+       {% block content %}
+       {% endblock %}
+  </div>
+</body>
+</html>

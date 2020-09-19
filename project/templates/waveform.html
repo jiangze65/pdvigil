@@ -1,12 +1,8 @@
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <title>Wave Form</title>
-    <!-- import plugin script -->
-    <script src='static/Chart.min.js'></script>
-  </head>
-  <body>
+ <!-- templates/waveform.html -->
+
+{% extends "base.html" %}
+
+{% block content %}
     <h1>Wave From #1</h1>
     <!-- bar chart canvas element -->
     <canvas id="myChart" width="600" height="400"></canvas>
@@ -81,6 +77,4 @@
         pointSelected.innerHTML = 'Point selected... index: ' + activePoint[0]._index;
       };
     </script>
-
-  </body>
-</html>
+{% endblock %}
