@@ -14,11 +14,10 @@ def login():
 
 @auth.route('/login', methods=['POST'])
 def login_post():
-    email = request.form.get('email')
+    name = request.form.get('name') 
     password = request.form.get('password')
-    remember = True if request.form.get('remember') else False
 
-    user = User.query.filter_by(email=email).first()
+    user = User.query.filter_by(name=name).first()
 
     # check if user actually exists
     # take the user supplied password, hash it, and compare it to the hashed password in database
@@ -27,7 +26,7 @@ def login_post():
         return redirect(url_for('auth.login')) # if user doesn't exist or password is wrong, reload the page
 
     # if the above check passes, then we know the user has the right credentials
-    login_user(user, remember=remember)
+    login_user(user, remember=True)
     return redirect(url_for('main.profile'))
 
 @auth.route('/signup')
@@ -41,10 +40,10 @@ def signup_post():
     name = request.form.get('name')
     password = request.form.get('password')
 
-    user = User.query.filter_by(email=email).first() # if this returns a user, then the email already exists in database
+    user = User.query.filter_by(name=name).first() # if this returns a user, then the email already exists in database
 
     if user: # if a user is found, we want to redirect back to signup page so user can try again  
-        flash('Email address already exists')
+        flash('The name already exists')
         return redirect(url_for('auth.signup'))
 
     # create new user with the form data. Hash the password so plaintext version isn't saved.
@@ -60,4 +59,4 @@ def signup_post():
 @login_required
 def logout():
     logout_user()
-    return redirect(url_for('main.index'))
+    return redirect(url_for('auth.login'))

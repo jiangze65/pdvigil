@@ -9,7 +9,7 @@ from .models import WaveForm
 from .models import PDWave
 from . import db
 import csv
-from flask import Blueprint, render_template
+from flask import Blueprint, render_template,request
 from flask_login import login_required, current_user
 
 main = Blueprint('main', __name__)
@@ -54,7 +54,7 @@ def start ():
             f.close
             th = StoppableThread (target = StoppableThread, name = name)
             th.start ()
-    return render_template('profile.html', name=current_user.name)
+    return render_template('profile.html', name="Data Acquisition Thread Started!")
 	
 @main.route ('/stop')
 def stop ():
@@ -63,7 +63,7 @@ def stop ():
         thread = get_thread_by_name (name)
         if thread:
             thread.stop ()
-    return render_template('profile.html', name=current_user.name)
+    return render_template('profile.html', name="Data Acquisition Thread Stopped!")
 	
 @main.route('/profile')
 @login_required
@@ -71,8 +71,16 @@ def profile():
 	return render_template('profile.html', name=current_user.name)
 	
 @main.route("/chart")
+@main.route("/chart", methods=['POST'])
 @login_required
 def chart():
+	selected=0 
+	if request.method == 'POST':
+		try: 
+			selected = int(request.form['pointSelected'])
+		except:
+			print("An exception occurred")
+	#Phase chart
 	t = np.arange (0.0, 2000.0, 10.0)
 	s = 512*np.sin(2*np.pi*(t/2000.0))
 	t = [round(x) for x in t]
@@ -80,14 +88,45 @@ def chart():
 	phase = []
 	amplitude = []
 	legend = 'PDChart'
-	#phaseDots=PhaseDots.query.all()
 	phaseDots=PDWave.query.all()
 	
 	for phaseDot in phaseDots:
 		phase.append(phaseDot.phase)
 		amplitude.append({'x': phaseDot.phase, 'y': phaseDot.peak})
 	ugly_blob = re.sub("[']", '', str(amplitude))
-	return render_template('chart.html', values=ugly_blob, labels=s, phases=t,legend=legend)
+	
+	#Wavefrom
+	xrange = np.arange (0, 512, 1)
+	if(int(selected)>0):
+		qs = PDWave.query.filter_by(phase=selected).first()	
+
+	if(selected<1 or qs is None):
+		qs = PDWave.query.first()
+		
+	yrange={qs.data}
+	ugly_blob0 = str(yrange).replace("'", "")
+	ugly_blob1= re.sub("[{]","[",ugly_blob0)
+	ugly_blob2= re.sub("[}]","]",ugly_blob1)
+
+	#FFT chart
+	#qs = PDWave.queryfilter_by(phase=selected).first()
+	yrange={qs.data}
+	ugly_b = str(yrange).replace("'", "")
+	ugly_b1= re.sub("[{]","",ugly_b)
+	ugly_b2= re.sub("[}]","",ugly_b1)	
+	list=ugly_b2.split(",")
+	x = []
+	for i in list:
+		x.append(int(i))
+	w = np.fft.fft(x)
+	z =np.abs(w[0:256])
+	fftVale="["
+	for x in z:
+		fftVale+=str(x)
+		fftVale+=","
+	fftVale+="]"
+	#print(fftVale)
+	return render_template('chart.html', values=ugly_blob, labels=s, phases=t,values2=ugly_blob2, labels2=xrange,values4=fftVale, labels4=50/256*xrange[0:256])
 	
 @main.route("/waveform")
 @login_required
