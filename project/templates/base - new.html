@@ -8,51 +8,52 @@
 </head>
 <body>
    <div class='navbar'>
+       <nav id='navbar-items'>
     <nav id='navbar-items'>
                     <a href="{{ url_for('main.index') }}>
-                        Home
+                        <div>Home</div>
                     </a>
                     {% if current_user.is_authenticated %}
                     <a href="{{ url_for('main.profile') }}>
-                        Profile
+                        <div>Profile</div>
                     </a>
 					{% endif %}
                     {% if current_user.is_authenticated %}
                     <a href="{{ url_for('main.chart') }}>
-                        Chart
+                        <div>Chart</div>
                     </a>							
                     {% endif %}
 					{% if current_user.is_authenticated %}
                     <a href="{{ url_for('main.waveform') }}>
-                        WaveForm
+                        <div>WaveForm</div>
                     </a>							
                     {% endif %}
 					{% if current_user.is_authenticated %}
                     <a href="{{ url_for('main.fftchart') }}>
-                        FFT Chart
+                        <div>FFT Chart</div>
                     </a>							
                     {% endif %}
 					{% if current_user.is_authenticated %}
                     <a href="{{ url_for('main.start') }}>
-                        Start
+                        <div>Start</div>
                     </a>							
                     {% endif %}
 					{% if current_user.is_authenticated %}
                     <a href="{{ url_for('main.stop') }}>
-                        Stop
+                        <div>Stop</div>
                     </a>							
                     {% endif %}							
                     {% if not current_user.is_authenticated %}
                     <a href="{{ url_for('auth.login') }}>
-                        Login
+                        <div>Login</div>
                     </a>
                     <a href="{{ url_for('auth.signup') }}>
-                        Sign Up
+                        <div>Sign Up</div>
                     </a>
                     {% endif %}
                     {% if current_user.is_authenticated %}
                     <a href="{{ url_for('auth.logout') }}>
-                        Logout
+                        <div>Logout</div>
                     </a>
                     {% endif %}
     </nav>

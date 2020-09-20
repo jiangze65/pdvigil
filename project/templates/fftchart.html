@@ -5,18 +5,18 @@
 {% block content %}
     <h1>Wave From #1</h1>
     <!-- bar chart canvas element -->
-    <canvas id="myChart" width="600" height="400"></canvas>
+    <canvas id="myChart"></canvas>
     <p id="pointSelected">Point selected:</p>
 	
     <h1>PD Sensor #1</h1>
     <!-- bar chart canvas element -->
-    <canvas id="myChart" width="600" height="400"></canvas>
+    <canvas id="myChart"></canvas>
     <p id="pointSelected">Point selected:</p>
 
     <script>
       // Global parameters:
       // do not resize the chart canvas when its container does (keep at 600x400px)
-      Chart.defaults.global.responsive = false;
+      Chart.defaults.global.responsive = true;
 
       // define the chart data
       var chartData = {
