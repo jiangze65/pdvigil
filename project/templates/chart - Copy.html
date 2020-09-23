@@ -1,0 +1,66 @@
+ <!-- templates/chart.html -->
+{% extends "base.html" %}
+{% block content %}
+    <!-- bar chart canvas element-->
+		<canvas id="chart1"</canvas>
+		<form action="{{ url_for('main.chart')}}" method="post">
+			<input type="text" name="pointSelected" id="pointSelected"><br>
+			<input type="submit" value="Submit">
+		</form>
+    <script>
+      // Global parameters:
+      // resize the chart canvas when its container does
+      Chart.defaults.global.responsive = true;
+      // define the chart data
+      var chartData = {
+        labels : [{% for item in phases %}
+                   "{{item}}",
+                  {% endfor %}],	  
+        datasets : [{
+            label: 'Phase',
+            fill: true,
+            showLine: true,
+			data: [{% for item in labels %}
+                      {{item}},
+                    {% endfor %}],
+            spanGaps: false
+			},
+			{
+			type: 'bubble',
+			label: 'PD Chart',
+			data: {{values}},
+			backgroundColor: "rgba(76,78,80, .7)",
+			borderColor: "transparent"
+			}]
+      }
+
+      // get chart canvas
+      var holder = document.getElementById("chart1");
+      var ctx = document.getElementById("chart1").getContext("2d");
+      // create the chart using the chart canvas
+      var chart1 = new Chart(ctx, {
+		type: 'line',
+        data: chartData,
+        options: {	
+          tooltips: {
+            enabled: true,
+            mode: 'single',
+            callbacks: {
+              label: function(tooltipItems, data) {
+                       return tooltipItems.yLabel;
+                     }
+            }
+          },
+        }
+      });
+      // create a callback function for updating the selected index on the chart
+      holder.onclick = function(evt){
+		var activePoints = chart1.getElementsAtEventForMode(evt, 'point', chart1.options);
+        var firstPoint = activePoints[0];
+        var label = chart1.data.labels[firstPoint._index];
+        var value = chart1.data.datasets[firstPoint._datasetIndex].data[firstPoint._index];
+        console.log(label+";" + value.y);
+		document.getElementById("pointSelected").value = label;
+      };
+    </script>
+{% endblock %}

@@ -1,24 +1,37 @@
- <!-- templates/chart.html -->
+<!-- templates/chart.html -->
 {% extends "base.html" %}
 {% block content %}
-    <!-- bar chart canvas element
-    <canvas id="chart1" width="600" height="400"></canvas>-->
-	<section class="container" width=100%>
-		<canvas id="chart1"></canvas>
-		<canvas id="chart2"></canvas>
-		<canvas id="chart3"></canvas>
-		<canvas id="chart4"></canvas>
-	</section>
-	<!--<p id="pointSelected"><br>Point selected:</p>-->
-	<form action="{{ url_for('main.chart')}}" method="post">
-		Selected Index: <input type="text" name="pointSelected" id="pointSelected"><br>
-    <input type="submit" value="Submit">
-	
-</form>
+<div class="tile is-ancestor">
+		<div class="tile">
+		  <div class="chart-container">
+			<canvas id="chart1"></canvas>
+		  </div>
+		</div>
+		<div class="tile">
+		  <div class="chart-container">
+			<canvas id="chart2"></canvas>
+		  </div>
+	</div>
+</div>
+<div class="tile is-ancestor">
+		<div class="tile">
+		  <div class="chart-container">
+			<form action="{{ url_for('main.chart')}}" method="post">
+				Selected Index: <input type="text" name="pointSelected" id="pointSelected"><br>
+				<input type="submit" value="Submit">
+			</form>
+		  </div>
+		</div>
+		<div class="tile">
+		  <div class="chart-container">
+			<canvas id="chart4"></canvas>
+		  </div>
+	</div>
+</div>
     <script>
       // Global parameters:
       // resize the chart canvas when its container does
-      Chart.defaults.global.responsive = false;
+      Chart.defaults.global.responsive = true;
       // define the chart data
       var chartData = {
         labels : [{% for item in phases %}
@@ -47,8 +60,8 @@
       var ctx = document.getElementById("chart1").getContext("2d");
       // create the chart using the chart canvas
       var chart1 = new Chart(ctx, {
-		type: 'line',
-        data: chartData,
+			type: 'line',
+			data: chartData,
         options: {	
           tooltips: {
             enabled: true,
