@@ -9,7 +9,7 @@ from .models import WaveForm
 from .models import PDWave
 from . import db
 import csv
-from flask import Blueprint, render_template,request
+from flask import Blueprint, render_template,request,current_app
 from flask_login import login_required, current_user
 
 main = Blueprint('main', __name__)
@@ -44,8 +44,8 @@ def start ():
         if not get_thread_by_name (name):
             db.session.query(PDWave).delete()
             db.session.commit()
-            f = open("D:\\PYSpace\\PDVigil\\project\\static\\wave_form.csv", "r")
-            Lines = f.readlines() 
+            with current_app.open_resource('static/wave_form.csv', "r") as f:
+              Lines = f.readlines()
             for line in Lines:
             	row=line.split(',',2)
             	pdwave=PDWave(phase=int(row[0]), peak=int(row[1]), data=row[2].strip("\n"))
@@ -139,7 +139,7 @@ def waveform():
 	ugly_blob1= re.sub("[{]","[",ugly_blob)
 	ugly_blob2= re.sub("[}]","]",ugly_blob1)
 	print(ugly_blob2)
-	return render_template('waveform.html', values=ugly_blob2, labels=xrange,legend='WaveForm')
+	return rgender_template('waveform.html', values=ugly_blob2, labels=xrange,legend='WaveForm')
 	
 @main.route("/fftchart")
 @login_required
