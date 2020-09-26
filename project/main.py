@@ -1,5 +1,4 @@
 # main.py
-import threading
 from datetime import datetime
 import time
 import numpy as np
@@ -8,7 +7,7 @@ from .models import PhaseDots
 from .models import WaveForm
 from .models import PDWave
 from . import db
-import csv
+import csv,json
 from flask import Blueprint, render_template,request,current_app
 from flask_login import login_required, current_user
 
@@ -17,61 +16,14 @@ main = Blueprint('main', __name__)
 @main.route('/')
 def index():
 	return render_template('index.html')
-
-class StoppableThread (threading.Thread):
-    def __init__(self, target, name):
-        super (StoppableThread, self).__init__(target = target, name = name)
-        self._stop = threading.Event ()
-    def run (self):
-        while not self._stop.is_set ():
-            time.sleep (1)
-            print (threading.currentThread (). getName () + ':' + str (datetime.today ()))
-    def stop (self):
-        self._stop.set ()
-    def stopped (self):
-        return self._stop.isSet ()
-def get_thread_by_name (name):
-    threads = threading.enumerate ()
-    for thread in threads:
-        if thread.getName () == name:
-            return thread
-    return None
-
-@main.route('/start')
-def start ():
-    name = "Acquisition"
-    if name:
-        if not get_thread_by_name (name):
-            db.session.query(PDWave).delete()
-            db.session.commit()
-            with current_app.open_resource('static/wave_form.csv', "r") as f:
-              Lines = f.readlines()
-            for line in Lines:
-            	row=line.split(',',2)
-            	pdwave=PDWave(phase=int(row[0]), peak=int(row[1]), data=row[2].strip("\n"))
-            	db.session.add(pdwave)
-            db.session.commit()
-            f.close
-            th = StoppableThread (target = StoppableThread, name = name)
-            th.start ()
-    return render_template('profile.html', name="Data Acquisition Thread Started!")
-	
-@main.route ('/stop')
-def stop ():
-    name = "Acquisition"
-    if name:
-        thread = get_thread_by_name (name)
-        if thread:
-            thread.stop ()
-    return render_template('profile.html', name="Data Acquisition Thread Stopped!")
 	
 @main.route('/profile')
 @login_required
 def profile():
 	return render_template('profile.html', name=current_user.name)
 	
-@main.route("/chart")
-@main.route("/chart", methods=['POST'])
+@main.route("/chart") #press a navigation bar
+@main.route("/chart", methods=['POST']) #post request from anywhere
 @login_required
 def chart():
 	selected=0 
@@ -80,23 +32,28 @@ def chart():
 			selected = int(request.form['pointSelected'])
 		except:
 			print("An exception occurred")
+			
+	data = {}
 	#Phase chart
-	t = np.arange (0.0, 2000.0, 10.0)
+	t = np.arange (0, 2000, 1)
+	data['pdchart_label'] = t.tolist();
 	s = 512*np.sin(2*np.pi*(t/2000.0))
-	t = [round(x) for x in t]
 	s = [round(x) for x in s]
-	phase = []
-	amplitude = []
-	legend = 'PDChart'
+	data['pdchart_data'] = s;
+	
+	datax = []
+	datay = []
+	pdchart_data = []
 	phaseDots=PDWave.query.all()
-	
 	for phaseDot in phaseDots:
-		phase.append(phaseDot.phase)
-		amplitude.append({'x': phaseDot.phase, 'y': phaseDot.peak})
-	ugly_blob = re.sub("[']", '', str(amplitude))
-	
+		datax.append(phaseDot.phase)
+		datay.append(phaseDot.peak)
+	data['pdchart_plotx'] = datax
+	data['pdchart_ploty'] = datay
+
 	#Wavefrom
 	xrange = np.arange (0, 512, 1)
+	data['wvchart_label'] = xrange.tolist();
 	if(int(selected)>0):
 		qs = PDWave.query.filter_by(phase=selected).first()	
 
@@ -104,42 +61,31 @@ def chart():
 		qs = PDWave.query.first()
 		
 	yrange={qs.data}
-	ugly_blob0 = str(yrange).replace("'", "")
-	ugly_blob1= re.sub("[{]","[",ugly_blob0)
-	ugly_blob2= re.sub("[}]","]",ugly_blob1)
-
+	results = str(yrange)[2:-2].split(",")
+	data['wvchart_data'] = results
+		
 	#FFT chart
-	#qs = PDWave.queryfilter_by(phase=selected).first()
-	yrange={qs.data}
-	ugly_b = str(yrange).replace("'", "")
-	ugly_b1= re.sub("[{]","",ugly_b)
-	ugly_b2= re.sub("[}]","",ugly_b1)	
-	list=ugly_b2.split(",")
-	x = []
-	for i in list:
-		x.append(int(i))
-	w = np.fft.fft(x)
-	z =np.abs(w[0:256])
-	fftVale="["
-	for x in z:
-		fftVale+=str(x)
-		fftVale+=","
-	fftVale+="]"
-	#print(fftVale)
-	return render_template('chart.html', values=ugly_blob, labels=s, phases=t,values2=ugly_blob2, labels2=xrange,values4=fftVale, labels4=50/256*xrange[0:256])
+	w = np.fft.fft(list(map(int, results))) #convert to integer first before FFT
+	z =np.abs(w[0:256]) #FFT result
+
+	data['fftchart_label'] = xrange[0:256].tolist()
+	data['fftchart_data'] = z.tolist()
+	
+	#print(data)
+	json_data = json.dumps(data)
+	return render_template('multichart.html', data=json_data)
+	#return render_template('chart.html', values=ugly_blob, labels=s, phases=t,values2=ugly_blob2, labels2=xrange,values4=fftVale, labels4=50/256*xrange[0:256])
 	
 @main.route("/waveform")
 @login_required
 def waveform():
 	xrange = np.arange (0, 512, 1)
-	#qs = WaveForm.query.first()
-	qs = PDWave.query.first()
+	qs = PDWave.query.first() #read first record from the table
 	yrange={qs.data}
-	ugly_blob = str(yrange).replace("'", "")
-	ugly_blob1= re.sub("[{]","[",ugly_blob)
-	ugly_blob2= re.sub("[}]","]",ugly_blob1)
-	print(ugly_blob2)
-	return rgender_template('waveform.html', values=ugly_blob2, labels=xrange,legend='WaveForm')
+	print(yrange)
+	results = list(map(int, str(yrange)[2:-2].split(",")))
+	print(results)
+	return render_template('waveform.html', values=results, labels=xrange,legend='WaveForm')
 	
 @main.route("/fftchart")
 @login_required
@@ -168,3 +114,14 @@ def fftchart():
 	print("...............................")
 	print(height)
 	return render_template('waveform.html', values=height, labels=50/256*xrange[0:256],legend='FFTChart')
+@main.route("/config")
+@login_required
+def config():
+	data = {"device_status":"Stopped", 
+		"sn":"XXXXXXXXXXXXXXXXXXXXXXXX", 
+		"key":"YYYYYYYYYYYYYYYYYYYYYYY",
+		"amplifier_gain":11,
+		"pulse_length":512,
+		"trigger_level": 61,
+		"trigger_points": 54};
+	return render_template('config.html',data=data)
