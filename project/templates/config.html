@@ -10,6 +10,8 @@
 			"trigger_level": 59,
 			"trigger_points": 31};
 -->
+<div class="box">
+
 <div class="tile is-ancestor">
 		<div class="tile">
 			<button class="button" id="start-and-stop">Start</button>
@@ -81,9 +83,8 @@
 <br>
 </div>
 <div class="boxContainer">
-    <div class="box">
-        <button style="height:40px;width:150px">Update</button>
-    </div>
+    <button style="height:40px;width:150px">Update</button>
+</div>
 </div>
 <script>
 		var data = JSON.parse('{{ data | tojson | safe}}');
