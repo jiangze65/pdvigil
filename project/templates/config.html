@@ -1,0 +1,109 @@
+<!-- templates/chart.html -->
+{% extends "base.html" %}
+{% block content %}
+<!--
+		var data = {"device_status":"Stopped", 
+			"sn":"XXXXXXXXXXXXXXXXXXXXXXXX", 
+			"key":"YYYYYYYYYYYYYYYYYYYYYYY",
+			"amplifier_gain":11,
+			"pulse_length":512,
+			"trigger_level": 59,
+			"trigger_points": 31};
+-->
+<div class="tile is-ancestor">
+		<div class="tile">
+			<button class="button" id="start-and-stop">Start</button>
+		</div>
+		<div class="tile">
+			<label class="label">Device Status</label>
+		</div>
+		<div class="tile">
+			<label class="label">SN#</label>
+		</div>
+		<div class="tile">
+			<label class="label" id = "sn">" "</label>
+		</div>
+</div>
+<div>
+<br>
+</div>
+<div class="tile is-ancestor">
+		<div class="tile">
+			<button class="button" id="start-and-stop">Stop</button>
+		</div>
+		<div class="tile">
+			<label class="label" id = "device_status">"unknown"</label>
+		</div>
+		<div class="tile">
+			<label class="label">Key#</label>
+		</div>
+		<div class="tile">
+			<label class="label" id = "key">" "</label>
+		</div>
+</div>
+<div>
+<br>
+</div>
+<div class="tile is-ancestor">
+		<div class="tile">
+		<label class="label">Amplifer Gain</label>
+		</div>
+		<div class="tile">
+			<select name="amplifier_gain" id="amplifier_gain" style="height:40px;width:150px">>
+			</select>
+		</div>
+		<div class="tile">
+		<label class="label">Pulse Length</label>
+		</div>
+		<div class="tile">
+			<select name="pulse_length" id="pulse_length" style="height:40px;width:150px">>
+			</select>
+		</div>
+</div>
+<div>
+<br>
+</div>
+<div class="tile is-ancestor">
+		<div class="tile">
+		<label class="label">Trigger Level</label>
+		</div>
+		<div class="tile">
+			<input type="text" name="trigger_level" id="trigger_level">
+		</div>
+		<div class="tile">
+		<label class="label">Pre-Trigger Points</label>
+		</div>
+		<div class="tile">
+			<input type="text" name="trigger_points" id="trigger_points">
+		</div>
+</div>
+<div>
+<br>
+</div>
+<div class="boxContainer">
+    <div class="box">
+        <button style="height:40px;width:150px">Update</button>
+    </div>
+</div>
+<script>
+		var data = JSON.parse('{{ data | tojson | safe}}');
+		document.getElementById('device_status').innerHTML=data.device_status;
+		document.getElementById('sn').innerHTML=data.sn;
+		document.getElementById('key').innerHTML=data.key;
+		var gain_list = document.getElementById('amplifier_gain');
+		for (i = 0; i < 16; i++) {
+			gain_list.options[i] = new Option(i, i);
+		};
+		gain_list.value=data.amplifier_gain;
+		
+		var value2 = [64, 128, 256, 512,1024];
+		var pulse_list = document.getElementById('pulse_length');
+		for (i = 0; i < value2.length; i++) {
+			pulse_list.options[i] = new Option(value2[i], value2[i]);
+		};
+		pulse_list.value=data.pulse_length;
+		document.getElementById('trigger_level').value=data.trigger_level;
+		document.getElementById('trigger_points').value=data.trigger_points;		
+		
+</script>
+{% endblock %}

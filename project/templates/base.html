@@ -34,17 +34,17 @@
                             </a>							
                             {% endif %}
 							{% if current_user.is_authenticated %}
-                            <a href="{{ url_for('main.fftchart') }}" class="navbar-item">
-                                FFT Chart
+                            <a href="{{ url_for('main.config') }}" class="navbar-item">
+                                Configuration
                             </a>							
                             {% endif %}
 							{% if current_user.is_authenticated %}
-                            <a href="{{ url_for('main.start') }}" class="navbar-item">
+                            <a href="{{ url_for('backgroundthread.start') }}" class="navbar-item">
                                 Start
                             </a>							
                             {% endif %}
 							{% if current_user.is_authenticated %}
-                            <a href="{{ url_for('main.stop') }}" class="navbar-item">
+                            <a href="{{ url_for('backgroundthread.stop') }}" class="navbar-item">
                                 Stop
                             </a>							
                             {% endif %}							
@@ -53,11 +53,9 @@
                                 Login
                             </a>
                             {% endif %}							
-                            {% if current_user.is_authenticated %}
                             <a href="{{ url_for('auth.signup') }}" class="navbar-item">
                                 Sign Up
                             </a>
-                            {% endif %}
                             {% if current_user.is_authenticated %}
                             <a href="{{ url_for('auth.logout') }}" class="navbar-item">
                                 Logout

@@ -1,15 +1,29 @@
 <!-- templates/chart.html -->
 {% extends "base.html" %}
 {% block content %}
+<!--
+		var data = {
+			"pdchart_label":[], 
+			"pdchart_data":[],
+			"pdchart_plotx":[],
+			"pdchart_ploty":[],
+			"wvchart_label":[], 
+			"wvart_data":[], 
+			"fftchart_label":[], 
+			"fftchart_data":[], 
+			"points": 31
+			};
+-->
+
 <div class="tile is-ancestor">
 		<div class="tile">
 		  <div class="chart-container">
-			<canvas id="chart1"></canvas>
+			<canvas id="pdchart"></canvas>
 		  </div>
 		</div>
 		<div class="tile">
 		  <div class="chart-container">
-			<canvas id="chart2"></canvas>
+			<canvas id="wvchart"></canvas>
 		  </div>
 	</div>
 </div>
@@ -67,38 +81,48 @@
 		</div>
 </div>
     <script>
+	  var org ='{{ data | tojson | safe}}';
+	  org = org.replace(/\\/g, '');
+	  org = org.slice(1,-1); 
+	  var data = JSON.parse(org);
+	  
       // Global parameters:
       // resize the chart canvas when its container does
       Chart.defaults.global.responsive = true;
-	  console.log({{values}});
+	  	function twoDArray(x, y){
+			var twoDArray =[];
+			for(let i = 0; i < x.length; i++){ 
+				twoDArray.push({x:+x[i],y:y[i]});
+			}
+			return twoDArray;
+		}
+		var twoDArray = twoDArray(data.pdchart_plotx,data.pdchart_ploty);
+		//console.log(twoDArray); 
       // define the chart data
       var chartData = {
-        labels : [{% for item in phases %}
-                   "{{item}}",
-                  {% endfor %}],	  
+        labels : data.pdchart_label,  
         datasets : [{
             label: 'Phase',
             fill: true,
             showLine: true,
-			data: [{% for item in labels %}
-                      {{item}},
-                    {% endfor %}],
+			data: data.pdchart_data,
             spanGaps: false
 			},
 			{
 			type: 'bubble',
 			label: 'PD Chart',
-			data: {{values}},
+			data: twoDArray,
 			backgroundColor: "rgba(76,78,80, .7)",
 			borderColor: "transparent"
-			}]
+			}
+			]
       }
 
       // get chart canvas
-      var holder = document.getElementById("chart1");
-      var ctx = document.getElementById("chart1").getContext("2d");
+      var holder = document.getElementById("pdchart");
+      var ctx = document.getElementById("pdchart").getContext("2d");
       // create the chart using the chart canvas
-      var chart1 = new Chart(ctx, {
+      var pdchart = new Chart(ctx, {
 			type: 'line',
 			data: chartData,
         options: {	
@@ -113,24 +137,22 @@
           },
         }
       });
-	  
-      // define the chart2 data
+	  console.log(data.wvchart_data);
+      // define the wvchart data
       var chartData2 = {
-        labels : [{% for item in labels2 %}
-                   "{{item}}",
-                  {% endfor %}],	  
+        labels : data.wvchart_label,	  
         datasets : [{
             label: 'WaveForm',
             fill: true,
-            data : {{values2}},
+            data : data.wvchart_data,
             spanGaps: false
         }]
       }
-      // get chart2 canvas
-      var holder2 = document.getElementById("chart2");
-      var ctx2 = document.getElementById("chart2").getContext("2d");
+      // get wvchart canvas
+      var holder2 = document.getElementById("wvchart");
+      var ctx2 = document.getElementById("wvchart").getContext("2d");
       // create the chart using the chart canvas
-      var chart2 = new Chart(ctx2, {
+      var wvchart = new Chart(ctx2, {
         type: 'line',
         data: chartData2,
         options: {
@@ -148,13 +170,11 @@
 
       // define the chart4 data
       var chartData4 = {
-        labels : [{% for item in labels4 %}
-                   "{{item}}",
-                  {% endfor %}],	  
+        labels : data.fftchart_label,	  
         datasets : [{
             label: 'FFT Chart',
             fill: true,
-            data : {{values4}},
+            data : data.fftchart_data,
             spanGaps: false
         }]
       }
@@ -181,17 +201,11 @@
 	  
       // create a callback function for updating the selected index on the chart
       holder.onclick = function(evt){
-		var activePoints = chart1.getElementsAtEventForMode(evt, 'point', chart1.options);
+		var activePoints = pdchart.getElementsAtEventForMode(evt, 'point', pdchart.options);
         var firstPoint = activePoints[0];
-        var label = chart1.data.labels[firstPoint._index];
-        var value = chart1.data.datasets[firstPoint._datasetIndex].data[firstPoint._index];
+        var label = pdchart.data.labels[firstPoint._index];
+        var value = pdchart.data.datasets[firstPoint._datasetIndex].data[firstPoint._index];
         console.log(label+";" + value.y);
-		//console.log(value);
-		//document.getElementById("pointSelected").value = value;
-        //console.log('x:' + activePoint[0]._view.x);
-        //console.log('maxWidth: ' + activePoint[0]._xScale.maxWidth);
-        //console.log('y: ' + activePoint[0]._view.y);
-        //console.log('index: ' + activePoint[0]._index);
 		document.getElementById("pointSelected").value = label;
       };
     </script>
