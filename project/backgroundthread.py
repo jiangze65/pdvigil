@@ -17,7 +17,7 @@ class StoppableThread (threading.Thread):
         while not self._stop.is_set ():
             time.sleep (1)
             if firstTime:
-                reloadDB()
+#                reloadDB()
                 fristTime=False
             print (threading.currentThread (). getName () + ':' + str (datetime.today ()))
     def stop (self):
@@ -50,6 +50,7 @@ def stop ():
             thread.stop ()
     return render_template('index.html')
 def reloadDB():
+	with db.app.app_context():
 		db.session.query(PDWave).delete()
 		db.session.commit()
 		with current_app.open_resource('static/wave_form.csv', "r") as f:

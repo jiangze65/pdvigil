@@ -51,7 +51,7 @@ def chart():
 	data['pdchart_plotx'] = datax
 	data['pdchart_ploty'] = datay
 
-	#Wavefrom
+	#Waveform
 	xrange = np.arange (0, 512, 1)
 	data['wvchart_label'] = xrange.tolist();
 	if(int(selected)>0):
@@ -74,7 +74,6 @@ def chart():
 	#print(data)
 	json_data = json.dumps(data)
 	return render_template('multichart.html', data=json_data)
-	#return render_template('chart.html', values=ugly_blob, labels=s, phases=t,values2=ugly_blob2, labels2=xrange,values4=fftVale, labels4=50/256*xrange[0:256])
 	
 @main.route("/waveform")
 @login_required
@@ -91,7 +90,6 @@ def waveform():
 @login_required
 def fftchart():
 	xrange = np.arange (0, 512, 1)
-	#qs = WaveForm.query.first()
 	qs = PDWave.query.first()
 	yrange={qs.data}
 	ugly_blob = str(yrange).replace("'", "")
@@ -103,16 +101,11 @@ def fftchart():
 		x.append(int(i))
 	w = np.fft.fft(x)
 	z =np.abs(w[0:256])
-	#freqs = np.fft.fftfreq(len(x))
 	height="["
 	for s in z:
 		height+=str(s)
 		height+=","
 	height+="]"
-	print(len(w))
-	print(w)
-	print("...............................")
-	print(height)
 	return render_template('waveform.html', values=height, labels=50/256*xrange[0:256],legend='FFTChart')
 @main.route("/config")
 @login_required
