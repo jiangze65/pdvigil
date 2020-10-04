@@ -3,65 +3,26 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <h1>Wave From #1</h1>
+    <h1>Wave Form #1</h1>
     <!-- bar chart canvas element -->
-    <canvas id="myChart"></canvas>
+    <div id="plotlyChart"></div>
     <p id="pointSelected">Point selected:</p>
     <script>
-      // Global parameters:
-      // do not resize the chart canvas when its container does (keep at 600x400px)
-      Chart.defaults.global.responsive = true;
-
-      // define the chart data
-      var chartData = {
-        labels : [{% for item in labels %}
+      var trace1 = {
+		line: {
+			color: 'rgb(67, 67, 67)',
+			width: 2
+			},
+		x: [{% for item in labels %}
                    "{{item}}",
-                  {% endfor %}],	  
-        datasets : [{
-            label: '{{ legend }}',
-            fill: true,
-            lineTension: 0.1,
-            backgroundColor: "rgba(75,192,192,0.4)",
-            borderColor: "rgba(75,192,192,1)",
-            borderCapStyle: 'butt',
-            borderDash: [],
-            borderDashOffset: 0.0,
-            borderJoinStyle: 'miter',
-            pointBorderColor: "rgba(75,192,192,1)",
-            pointBackgroundColor: "#fff",
-            pointBorderWidth: 1,
-            pointHoverRadius: 5,
-            pointHoverBackgroundColor: "rgba(75,192,192,1)",
-            pointHoverBorderColor: "rgba(220,220,220,1)",
-            pointHoverBorderWidth: 2,
-            pointRadius: 1,
-            pointHitRadius: 10,
-            data : {{values}},
-            spanGaps: false
-        }]
-      }
-
-      // get chart canvas
-      var holder = document.getElementById("myChart");
-      var ctx = document.getElementById("myChart").getContext("2d");
-
-      // create the chart using the chart canvas
-      var myChart = new Chart(ctx, {
-        type: 'line',
-        data: chartData,
-        options: {
-          tooltips: {
-            enabled: true,
-            mode: 'single',
-            callbacks: {
-              label: function(tooltipItems, data) {
-                       return tooltipItems.yLabel;
-                     }
-            }
-          },
-        }
-      });
-
+                  {% endfor %}],
+		y: {{values}},
+		type: 'scatter'
+	  };
+	  
+	  var data = [trace1];
+	  
+	  Plotly.plot('plotlyChart', data);
       // get the text element below the chart
       var pointSelected = document.getElementById("pointSelected");
 

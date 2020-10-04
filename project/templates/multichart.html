@@ -14,24 +14,23 @@
 			"points": 31
 			};
 -->
-
 <div class="tile is-ancestor">
 		<div class="tile">
 		  <div class="chart-container">
-			<canvas id="pdchart"></canvas>
+			<div id="pdchart"></div>
 		  </div>
 		</div>
 		<div class="tile">
 		  <div class="chart-container">
-			<canvas id="wvchart"></canvas>
+			<div id="wvchart"></div>
 		  </div>
 	</div>
 </div>
 <div class="tile is-ancestor">
 		<div class="tile">
-		  <div class="chart-container">
+		  <div class="chart-container information">
 			<form action="{{ url_for('main.chart')}}" method="post">
-				Selected Index: <input type="text" name="pointSelected" id="pointSelected"><br>
+				<input type="text" name="pointSelected" id="pointSelected"><br>
 				<input type="submit" value="Submit">
 			</form>
 			<table id="points-on-index" class="table is-striped is-fullwidth" width: 100%>
@@ -65,18 +64,12 @@
 					<td>1125</td>
 					<td>345</td>
 				</tr>
-				<tr>
-					<td>123</td>
-					<td>2020 Sept 10, 10:30:31am</td>
-					<td>1125</td>
-					<td>345</td>
-				</tr>
 			</table>
 		  </div>
 		</div>
 		<div class="tile">
 		  <div class="chart-container">
-			<canvas id="chart4"></canvas>
+			<div id="fftchart"></div>
 		  </div>
 		</div>
 </div>
@@ -85,163 +78,72 @@
 	  org = org.replace(/\\/g, '');
 	  org = org.slice(1,-1); 
 	  var data = JSON.parse(org);
-	  
-      // Global parameters:
-      // resize the chart canvas when its container does
-      Chart.defaults.global.responsive = true;
-	  	function twoDArray(x, y){
-			var twoDArray =[];
-			for(let i = 0; i < x.length; i++){ 
-				twoDArray.push({x:+x[i],y:y[i]});
-			}
-			return twoDArray;
-		}
-		var twoDArray = twoDArray(data.pdchart_plotx,data.pdchart_ploty);
-		//console.log(twoDArray); 
       // define the chart data
-      var chartData = {
-        labels : data.pdchart_label,  
-        datasets : [{
-            label: 'Phase',
-            fill: true,
-            showLine: true,
-			data: data.pdchart_data,
-            spanGaps: false
+	  var holder = document.getElementById("pdchart");
+	  var pdchartTrace1 = {
+		line: {
+			color: 'rgb(50, 168, 160)',
+			width: 1
 			},
-			{
-			type: 'bubble',
-			label: 'PD Chart',
-			backgroundColor: 'rgba(75,192,192,0.4)',
-			borderColor: "rgba(75,192,192,1)",
-			pointBorderColor: "rgba(75,192,192,1)",
-			pointHoverBackgroundColor: "rgba(75,192,192,1)",
-            pointHoverBorderColor: "rgba(220,220,220,1)",
-			data: twoDArray,
-			
-			}
-			]
-      }
-
-      // get chart canvas
-      var holder = document.getElementById("pdchart");
-      var ctx = document.getElementById("pdchart").getContext("2d");
-      // create the chart using the chart canvas
-      var pdchart = new Chart(ctx, {
-			type: 'line',
-			data: chartData,
-        options: {	
-          tooltips: {
-            enabled: true,
-            mode: 'single',
-            callbacks: {
-              label: function(tooltipItems, data) {
-                       return tooltipItems.yLabel;
-                     }
-            }
-          },
-        }
-      });
-	  console.log(data.wvchart_data);
+		x: data.pdchart_label,
+		y: data.pdchart_data,
+		type: 'scatter',
+		mode: 'lines',
+		hoverinfo: "none",
+	  };
+	  var pdchartTrace2 = {
+		x: data.pdchart_plotx,
+		y: data.pdchart_ploty,
+		type: 'scatter',
+		mode: 'markers',
+		marker: {
+			size: 4,
+			color: math.abs(data.pdchart_ploty),
+			colorscale: 'Blackbody'
+		}
+	  }
+	  var layout = {
+		showlegend: false,
+		};
+	  var config = {responsive: true,'displaylogo': false};
+	  var pddata = [pdchartTrace1, pdchartTrace2];
+	  
+	  Plotly.newPlot('pdchart', pddata, layout, config,{displaylogo: false});
+	  
       // define the wvchart data
-      var chartData2 = {
-        labels : data.wvchart_label,	  
-        datasets : [{
-            label: 'WaveForm',
-            fill: true,
-			backgroundColor: 'rgba(75,192,192,0.4)',
-            borderColor: "rgba(75,192,192,1)",
-            borderCapStyle: 'butt',
-            borderDash: [],
-            borderDashOffset: 0.0,
-            borderJoinStyle: 'miter',
-            pointBorderColor: "rgba(75,192,192,1)",
-            pointBackgroundColor: "#fff",
-            pointBorderWidth: 1,
-            pointHoverRadius: 5,
-            pointHoverBackgroundColor: "rgba(75,192,192,1)",
-            pointHoverBorderColor: "rgba(220,220,220,1)",
-            pointHoverBorderWidth: 2,
-            pointRadius: 1,
-            pointHitRadius: 10,
-            data : data.wvchart_data,
-            spanGaps: false
-        }]
-      }
-      // get wvchart canvas
-      var holder2 = document.getElementById("wvchart");
-      var ctx2 = document.getElementById("wvchart").getContext("2d");
-      // create the chart using the chart canvas
-      var wvchart = new Chart(ctx2, {
-        type: 'line',
-        data: chartData2,
-        options: {
-          tooltips: {
-            enabled: true,
-            mode: 'single',
-            callbacks: {
-              label: function(tooltipItems, data) {
-                       return tooltipItems.yLabel;
-                     }
-            }
-          },
-        }
-      });
+      var wvchart = {
+		line: {
+			color: 'rgb(50, 168, 160)',
+			width: 2
+			},
+		x: data.wvchart_label,
+		y: data.wvchart_data,
+		type: 'scatter'
+	  };
+	  var wvdata = [wvchart];
+
+	  Plotly.newPlot('wvchart', wvdata, config,{displaylogo: false});
 
       // define the chart4 data
-      var chartData4 = {
-        labels : data.fftchart_label,	  
-        datasets : [{
-            label: 'FFT Chart',
-            fill: true,
-			backgroundColor: "rgba(75,192,192,0.4)",
-            borderColor: "rgba(75,192,192,1)",
-            borderCapStyle: 'butt',
-            borderDash: [],
-            borderDashOffset: 0.0,
-            borderJoinStyle: 'miter',
-            pointBorderColor: "rgba(75,192,192,1)",
-            pointBackgroundColor: "#fff",
-            pointBorderWidth: 1,
-            pointHoverRadius: 5,
-            pointHoverBackgroundColor: "rgba(75,192,192,1)",
-            pointHoverBorderColor: "rgba(220,220,220,1)",
-            pointHoverBorderWidth: 2,
-            pointRadius: 1,
-            pointHitRadius: 10,
-            showLine: true,
-            data : data.fftchart_data,
-            spanGaps: false
-        }]
-      }
-      // get chart4 canvas
-      var holder4 = document.getElementById("chart4");
-      var ctx4 = document.getElementById("chart4").getContext("2d");
-      // create the chart using the chart canvas
-      var chart4 = new Chart(ctx4, {
-        type: 'line',
-        data: chartData4,
-        options: {
-          tooltips: {
-            enabled: true,
-            mode: 'single',
-            callbacks: {
-              label: function(tooltipItems, data) {
-					   document.getElementById("pointSelected").value = tooltipItems.yLabel;
-                       return tooltipItems.yLabel;
-                     }
-            }
-          },
-        }
-      });
+      var fftchart = {
+		line: {
+			color: 'rgb(50, 168, 160)',
+			width: 2
+			},
+		x: data.fftchart_label,
+		y: data.fftchart_data,
+		type: 'scatter'
+	  };
+	  var fftdata = [fftchart];
+	  
+	  Plotly.newPlot('fftchart', fftdata, config,{displaylogo: false});
 	  
       // create a callback function for updating the selected index on the chart
-      holder.onclick = function(evt){
-		var activePoints = pdchart.getElementsAtEventForMode(evt, 'point', pdchart.options);
-        var firstPoint = activePoints[0];
-        var label = pdchart.data.labels[firstPoint._index];
-        var value = pdchart.data.datasets[firstPoint._datasetIndex].data[firstPoint._index];
-        console.log(label+";" + value.y);
-		document.getElementById("pointSelected").value = label;
-      };
+      var pdchart = document.getElementById("pdchart");
+	  pdchart.on ('plotly_click', function(data) {
+		var xcoord = data.points[0].x; //get the first point from the selection
+
+		document.getElementById("pointSelected").value = xcoord;
+	  })
     </script>
 {% endblock %}
