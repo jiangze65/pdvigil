@@ -25,10 +25,31 @@
 canvas {
   border: 1px dotted red;
 }
-
 .chart-container {
   position: relative;
-  margin: 1px 1px;
+  margin: 10px 10px;
   height: 40vh;
   width: 40vw;
+}
+#trigger_level {
+	height: 40px;
+}
+
+#start-and-stop {
+	width: 150px;
+}
+.boxContainer {
+    display: table;
+}
+.box {
+    width: 80vw;
+    height: 40px;
+    padding: 2%;
+    display: table-cell;
+    text-align: center;
+    vertical-align: bottom;
+}
+
+.information {
+	margin-top: 80px;
 }
