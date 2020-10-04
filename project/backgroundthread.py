@@ -13,12 +13,9 @@ class StoppableThread (threading.Thread):
         super (StoppableThread, self).__init__(target = target, name = name)
         self._stop = threading.Event ()
     def run (self):
-        firstTime=True
+        reloadDB()
         while not self._stop.is_set ():
             time.sleep (1)
-            if firstTime:
-#                reloadDB()
-                fristTime=False
             print (threading.currentThread (). getName () + ':' + str (datetime.today ()))
     def stop (self):
         self._stop.set ()
@@ -50,6 +47,7 @@ def stop ():
             thread.stop ()
     return render_template('index.html')
 def reloadDB():
+	print("Start reloading DB")
 	with db.app.app_context():
 		db.session.query(PDWave).delete()
 		db.session.commit()
@@ -61,4 +59,4 @@ def reloadDB():
 			db.session.add(pdwave)
 			db.session.commit()
 		f.close
-	
+	print("Stop reloading DB")

@@ -37,7 +37,7 @@ def chart():
 	#Phase chart
 	t = np.arange (0, 2000, 1)
 	data['pdchart_label'] = t.tolist();
-	s = 512*np.sin(2*np.pi*(t/2000.0))
+	s = 512*np.sin(2*np.pi*(t/2000))
 	s = [round(x) for x in s]
 	data['pdchart_data'] = s;
 	
@@ -46,6 +46,7 @@ def chart():
 	pdchart_data = []
 	phaseDots=PDWave.query.all()
 	for phaseDot in phaseDots:
+#phase: 100MHZ/50HZ=2,000,000/1024=1953.1
 		datax.append(phaseDot.phase)
 		datay.append(phaseDot.peak)
 	data['pdchart_plotx'] = datax
