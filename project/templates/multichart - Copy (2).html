@@ -1,0 +1,149 @@
+<!-- templates/chart.html -->
+{% extends "base.html" %}
+{% block content %}
+<!--
+		var data = {
+			"pdchart_label":[], 
+			"pdchart_data":[],
+			"pdchart_plotx":[],
+			"pdchart_ploty":[],
+			"wvchart_label":[], 
+			"wvart_data":[], 
+			"fftchart_label":[], 
+			"fftchart_data":[], 
+			"points": 31
+			};
+-->
+<div class="tile is-ancestor">
+		<div class="tile">
+		  <div class="chart-container">
+			<div id="pdchart"></div>
+		  </div>
+		</div>
+		<div class="tile">
+		  <div class="chart-container">
+			<div id="wvchart"></div>
+		  </div>
+	</div>
+</div>
+<div class="tile is-ancestor">
+		<div class="tile">
+		  <div class="chart-container information">
+			<form action="{{ url_for('main.chart')}}" method="post">
+				<input type="text" name="pointSelected" id="pointSelected"><br>
+				<input type="submit" value="Submit">
+			</form>
+			<table id="points-on-index" class="table is-striped is-fullwidth" width: 100%>
+				<tr class="th">
+					<th>ID</th>
+					<th>Time</th>
+					<th>Phase</th>
+					<th>Peak</th>
+				</tr>
+				<tr>
+					<td>123</td>
+					<td>2020 Sept 10, 10:30:31am</td>
+					<td>1125</td>
+					<td>345</td>
+				</tr>
+				<tr>
+					<td>123</td>
+					<td>2020 Sept 10, 10:30:31am</td>
+					<td>1125</td>
+					<td>345</td>
+				</tr>
+				<tr>
+					<td>123</td>
+					<td>2020 Sept 10, 10:30:31am</td>
+					<td>1125</td>
+					<td>345</td>
+				</tr>
+				<tr>
+					<td>123</td>
+					<td>2020 Sept 10, 10:30:31am</td>
+					<td>1125</td>
+					<td>345</td>
+				</tr>
+			</table>
+		  </div>
+		</div>
+		<div class="tile">
+		  <div class="chart-container">
+			<div id="fftchart"></div>
+		  </div>
+		</div>
+</div>
+    <script>
+	  var org ='{{ data | tojson | safe}}';
+	  org = org.replace(/\\/g, '');
+	  org = org.slice(1,-1); 
+	  var data = JSON.parse(org);
+      // define the chart data
+	  var holder = document.getElementById("pdchart");
+	  var pdchartTrace1 = {
+		line: {
+			color: 'rgb(50, 168, 160)',
+			width: 1
+			},
+		x: data.pdchart_label,
+		y: data.pdchart_data,
+		type: 'scatter',
+		mode: 'lines',
+		hoverinfo: "none",
+	  };
+	  var pdchartTrace2 = {
+		x: data.pdchart_plotx,
+		y: data.pdchart_ploty,
+		type: 'scatter',
+		mode: 'markers',
+		marker: {
+			size: 4,
+			color: math.abs(data.pdchart_ploty),
+			colorscale: 'Blackbody'
+		}
+	  }
+	  var layout = {
+		showlegend: false,
+		};
+	  var config = {responsive: true,'displaylogo': false};
+	  var pddata = [pdchartTrace1, pdchartTrace2];
+	  
+	  Plotly.newPlot('pdchart', pddata, layout, config,{displaylogo: false});
+	  
+      // define the wvchart data
+      var wvchart = {
+		line: {
+			color: 'rgb(50, 168, 160)',
+			width: 2
+			},
+		x: data.wvchart_label,
+		y: data.wvchart_data,
+		type: 'scatter'
+	  };
+	  var wvdata = [wvchart];
+
+	  Plotly.newPlot('wvchart', wvdata, config,{displaylogo: false});
+
+      // define the chart4 data
+      var fftchart = {
+		line: {
+			color: 'rgb(50, 168, 160)',
+			width: 2
+			},
+		x: data.fftchart_label,
+		y: data.fftchart_data,
+		type: 'scatter'
+	  };
+	  var fftdata = [fftchart];
+	  
+	  Plotly.newPlot('fftchart', fftdata, config,{displaylogo: false});
+	  
+      // create a callback function for updating the selected index on the chart
+      var pdchart = document.getElementById("pdchart");
+	  pdchart.on ('plotly_click', function(data) {
+		var xcoord = data.points[0].x; //get the first point from the selection
+
+		document.getElementById("pointSelected").value = xcoord;
+	  })
+    </script>
+{% endblock %}

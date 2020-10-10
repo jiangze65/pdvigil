@@ -11,7 +11,6 @@
 			"wvart_data":[], 
 			"fftchart_label":[], 
 			"fftchart_data":[], 
-			"points": 31
 			};
 -->
 <div class="tile is-ancestor">
@@ -29,41 +28,13 @@
 <div class="tile is-ancestor">
 		<div class="tile">
 		  <div class="chart-container information">
-			<form action="{{ url_for('main.chart')}}" method="post">
-				<input type="text" name="pointSelected" id="pointSelected"><br>
-				<input type="submit" value="Submit">
-			</form>
-			<table id="points-on-index" class="table is-striped is-fullwidth" width: 100%>
-				<tr class="th">
-					<th>ID</th>
-					<th>Time</th>
-					<th>Phase</th>
-					<th>Peak</th>
-				</tr>
-				<tr>
-					<td>123</td>
-					<td>2020 Sept 10, 10:30:31am</td>
-					<td>1125</td>
-					<td>345</td>
-				</tr>
-				<tr>
-					<td>123</td>
-					<td>2020 Sept 10, 10:30:31am</td>
-					<td>1125</td>
-					<td>345</td>
-				</tr>
-				<tr>
-					<td>123</td>
-					<td>2020 Sept 10, 10:30:31am</td>
-					<td>1125</td>
-					<td>345</td>
-				</tr>
-				<tr>
-					<td>123</td>
-					<td>2020 Sept 10, 10:30:31am</td>
-					<td>1125</td>
-					<td>345</td>
-				</tr>
+			<table id="phase_points_table" class="table is-striped is-fullwidth" width: 100%>
+			<colgroup>
+				<col span="1" style="width: 10%;">
+				<col span="1" style="width: 50%;">
+				<col span="1" style="width: 20%;">
+				<col span="1" style="width: 20%;">
+			</colgroup>
 			</table>
 		  </div>
 		</div>
@@ -74,10 +45,106 @@
 		</div>
 </div>
     <script>
-	  var org ='{{ data | tojson | safe}}';
-	  org = org.replace(/\\/g, '');
-	  org = org.slice(1,-1); 
-	  var data = JSON.parse(org);
+	var layout = {
+		showlegend: false,
+	};
+	var config = {responsive: true,'displaylogo': false};
+	loadChart('http://localhost:5000/pdv/api/v1.0/get_prpd', showPDChart);
+	
+	function loadTable(val)
+	{
+		var url= "http://localhost:5000/pdv/api/v1.0/get_phasepoints?".concat("selected=", val);
+		var xmlhttp = new XMLHttpRequest();
+		xmlhttp.onreadystatechange = function() {
+			if (this.readyState == 4 && this.status == 200) {
+				var myArr = JSON.parse(this.responseText);
+				updateTable("phase_points_table", myArr);
+			}
+		};
+		xmlhttp.open('GET', url, true);
+		xmlhttp.send();
+	}
+	function updateTable(tableId, jsonData){
+		var tableHTML = "<tr>";
+		tableHTML += "<th>ID</th><th>Time</th><th>Phase</th><th>Peak</th>";
+		tableHTML += "</tr>";
+		for (var eachItem in jsonData) {
+		tableHTML += "<tr>";
+		var dataObj = jsonData[eachItem];
+		for (var eachValue in dataObj){
+		tableHTML += "<td>" + dataObj[eachValue] + "</td>";
+		}
+		tableHTML += "</tr>";
+		}
+		document.getElementById(tableId).innerHTML = tableHTML;
+		addRowHandlers(tableId);
+		loadWaveForm(jsonData[0][0]);
+	}
+	function addRowHandlers(tableId) {
+		var table = document.getElementById(tableId);
+		var rows = table.getElementsByTagName("tr");
+		for (i = 0; i < rows.length; i++) {
+			var currentRow = table.rows[i];
+		var createClickHandler = function(row) {
+		return function() {
+			var cell = row.getElementsByTagName("td")[0];
+			var id = cell.innerHTML;
+			loadWaveForm(id);
+		};
+		};
+		currentRow.onclick = createClickHandler(currentRow);
+		}
+	}
+	
+	function loadWaveForm(val)
+	{
+		var url= "http://localhost:5000/pdv/api/v1.0/get_waveform?".concat("selected=", val);
+		loadChart(url, showWVFFTChart);
+	}
+	function loadChart(url, showchart)
+	{
+		var xmlhttp = new XMLHttpRequest();
+		xmlhttp.onreadystatechange = function() {
+			if (this.readyState == 4 && this.status == 200) {
+				var myArr = JSON.parse(this.responseText);
+				showchart(myArr);
+			}
+		};
+		xmlhttp.open('GET', url, true);
+		xmlhttp.send();
+	}
+	function showWVFFTChart(data)
+	{
+      // define the wvchart data
+      var wvchart = {
+		line: {
+			color: 'rgb(50, 168, 160)',
+			width: 2
+			},
+		x: data.wvchart_label,
+		y: data.wvchart_data,
+		type: 'scatter'
+	  };
+	  var wvdata = [wvchart];
+
+	  Plotly.newPlot('wvchart', wvdata, config,{displaylogo: false});
+
+      // define the fftchart data
+      var fftchart = {
+		line: {
+			color: 'rgb(50, 168, 160)',
+			width: 2
+			},
+		x: data.fftchart_label,
+		y: data.fftchart_data,
+		type: 'scatter'
+	  };
+	  var fftdata = [fftchart];
+	  
+	  Plotly.newPlot('fftchart', fftdata, config,{displaylogo: false});
+	}
+	function showPDChart(data)
+	{
       // define the chart data
 	  var holder = document.getElementById("pdchart");
 	  var pdchartTrace1 = {
@@ -102,48 +169,15 @@
 			colorscale: 'Blackbody'
 		}
 	  }
-	  var layout = {
-		showlegend: false,
-		};
-	  var config = {responsive: true,'displaylogo': false};
 	  var pddata = [pdchartTrace1, pdchartTrace2];
 	  
 	  Plotly.newPlot('pdchart', pddata, layout, config,{displaylogo: false});
-	  
-      // define the wvchart data
-      var wvchart = {
-		line: {
-			color: 'rgb(50, 168, 160)',
-			width: 2
-			},
-		x: data.wvchart_label,
-		y: data.wvchart_data,
-		type: 'scatter'
-	  };
-	  var wvdata = [wvchart];
-
-	  Plotly.newPlot('wvchart', wvdata, config,{displaylogo: false});
-
-      // define the chart4 data
-      var fftchart = {
-		line: {
-			color: 'rgb(50, 168, 160)',
-			width: 2
-			},
-		x: data.fftchart_label,
-		y: data.fftchart_data,
-		type: 'scatter'
-	  };
-	  var fftdata = [fftchart];
-	  
-	  Plotly.newPlot('fftchart', fftdata, config,{displaylogo: false});
-	  
       // create a callback function for updating the selected index on the chart
       var pdchart = document.getElementById("pdchart");
 	  pdchart.on ('plotly_click', function(data) {
 		var xcoord = data.points[0].x; //get the first point from the selection
-
-		document.getElementById("pointSelected").value = xcoord;
+		loadTable(xcoord);
 	  })
+	}
     </script>
 {% endblock %}
