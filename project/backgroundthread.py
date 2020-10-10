@@ -55,8 +55,9 @@ def reloadDB():
 			Lines = f.readlines()
 		for line in Lines:
 			row=line.split(',',2)
+			#print(row)
 			pdwave=PDWave(phase=int(row[0]), peak=int(row[1]), data=row[2].strip("\n"))
 			db.session.add(pdwave)
-			db.session.commit()
-		f.close
+		db.session.commit()
+	f.close
 	print("Stop reloading DB")
