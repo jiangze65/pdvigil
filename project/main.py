@@ -106,8 +106,6 @@ def get_waveform():
 		selected = int(request.args['selected'])
 	data = {}
 	#Waveform
-	xrange = np.arange (0, 512, 1)
-	data['wvchart_label'] = xrange.tolist()
 	print("selected:"+str(selected))
 	if(int(selected)>0):
 		qs = PDWave.query.filter_by(id=selected).first()	
@@ -116,13 +114,16 @@ def get_waveform():
 	yrange={qs.data}
 	results = str(yrange)[2:-2].split(",")
 	data['wvchart_data'] = results
-	
+	length =len(results)
+	print(length)
+	xrange = np.arange (0, length, 1)
+	data['wvchart_label'] = xrange.tolist()
 	#FFT chart
 	w = np.fft.fft(list(map(int, results))) #convert to integer first before FFT
-	z =np.abs(w[0:256]) #FFT result
-
-	data['fftchart_label'] = xrange[0:256].tolist()
+	z =np.abs(w[0:int(length/2)]) #FFT result
+	data['fftchart_label'] = xrange[0:int(length/2)].tolist()
 	data['fftchart_data'] = z.tolist()
+	print(data)
 	return responseJSON(data)
 @main.route('/pdv/api/v1.0/get_fft', methods=['GET'])
 def get_fft():
