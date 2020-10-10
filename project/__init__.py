@@ -2,9 +2,11 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager 
+#from flask_socketio import SocketIO
 
 # init SQLAlchemy so we can use it later in our models
 db = SQLAlchemy()
+#socketio = SocketIO()
 
 def create_app():
     app = Flask(__name__)
@@ -33,4 +35,5 @@ def create_app():
 	
     from .backgroundthread import backgroundthread as backgroundthread_blueprint
     app.register_blueprint(backgroundthread_blueprint)
+#    socketio.init_app(app)
     return app

@@ -6,12 +6,11 @@ import re
 from .models import PhaseDots
 from .models import WaveForm
 from .models import PDWave
-#from . import socketio
-from . import db
+from . import db,socketio
 import csv,json
 from flask import Blueprint, render_template,request,current_app,session, jsonify
 from flask_login import login_required, current_user
-#from flask_socketio import emit, join_room, leave_room
+from flask_socketio import emit, join_room, leave_room
 
 main = Blueprint('main', __name__)
 
@@ -25,8 +24,58 @@ def profile():
 	return render_template('profile.html', name=current_user.name)
 	
 @main.route("/chart") #press a navigation bar
+@main.route("/chart", methods=['POST']) #post request from anywhere
 @login_required
 def chart():
+	selected=0 
+	if request.method == 'POST':
+		try: 
+			selected = int(request.form['pointSelected'])
+		except:
+			print("An exception occurred")
+			
+	data = {}
+	#Phase chart
+	t = np.arange (0, 2000, 1)
+	data['pdchart_label'] = t.tolist();
+	s = 512*np.sin(2*np.pi*(t/2000))
+	s = [round(x) for x in s]
+	data['pdchart_data'] = s;
+	
+	datax = []
+	datay = []
+	pdchart_data = []
+	phaseDots=PDWave.query.all()
+	for phaseDot in phaseDots:
+#phase: 100MHZ/50HZ=2,000,000/1024=1953.1
+		datax.append(phaseDot.phase)
+		datay.append(phaseDot.peak)
+	data['pdchart_plotx'] = datax
+	data['pdchart_ploty'] = datay
+
+	#Waveform
+	xrange = np.arange (0, 512, 1)
+	data['wvchart_label'] = xrange.tolist();
+	if(int(selected)>0):
+		qs = PDWave.query.filter_by(phase=selected).first()	
+
+	if(selected<1 or qs is None):
+		qs = PDWave.query.first()
+		
+	yrange={qs.data}
+	results = str(yrange)[2:-2].split(",")
+	data['wvchart_data'] = results
+		
+	#FFT chart
+	w = np.fft.fft(list(map(int, results))) #convert to integer first before FFT
+	z =np.abs(w[0:256]) #FFT result
+
+	data['fftchart_label'] = xrange[0:256].tolist()
+	data['fftchart_data'] = z.tolist()
+	
+	#print(data)
+	json_data = json.dumps(data)
+	#return render_template('multichart.html', data=json_data)
 	return render_template('multichart.html')
 @main.route("/waveform")
 @login_required
@@ -98,62 +147,22 @@ def get_prpd():
 		datay.append(phaseDot.peak)
 	data['pdchart_plotx'] = datax
 	data['pdchart_ploty'] = datay
-	return responseJSON(data)
-@main.route('/pdv/api/v1.0/get_waveform', methods=['GET'])
-def get_waveform():
-	selected=0
-	if 'selected' in request.args:
-		selected = int(request.args['selected'])
-	data = {}
-	#Waveform
-	xrange = np.arange (0, 512, 1)
-	data['wvchart_label'] = xrange.tolist()
-	print("selected:"+str(selected))
-	if(int(selected)>0):
-		qs = PDWave.query.filter_by(id=selected).first()	
-	if(selected<1 or qs is None):
-		qs = PDWave.query.first()
-	yrange={qs.data}
-	results = str(yrange)[2:-2].split(",")
-	data['wvchart_data'] = results
-	
-	#FFT chart
-	w = np.fft.fft(list(map(int, results))) #convert to integer first before FFT
-	z =np.abs(w[0:256]) #FFT result
-
-	data['fftchart_label'] = xrange[0:256].tolist()
-	data['fftchart_data'] = z.tolist()
-	return responseJSON(data)
-@main.route('/pdv/api/v1.0/get_fft', methods=['GET'])
-def get_fft():
-	data = {}
-	return responseJSON(data)
-@main.route('/pdv/api/v1.0/get_phasepoints', methods=['GET'])
-def get_phasepoints():
-	selected=0
-	if 'selected' in request.args:
-		selected = int(request.args['selected'])
-	print("selected:"+str(selected))
-	qs = PDWave.query.with_entities(PDWave.id,PDWave.upt_time,PDWave.phase,PDWave.peak).filter_by(phase=selected).all()
-	print(qs)
-	return responseJSON(qs)
-def responseJSON(data):
 	response = jsonify(data)
 	response.headers.add('Access-Control-Allow-Origin', '*')
 	return response
-	
-#@socketio.on('joined', namespace='/ws')
-#def joined(message):
-#    print(message)
-#    join_room(1)
-#    emit('status', {'msg': 'you has entered the room.'}, room=1)
-#@socketio.on('text', namespace='/ws')
-#def text(message):
-#    print(message)
-#    emit('message', {'msg': message['msg']}, room=1)
-#
-#@socketio.on('left', namespace='/ws')
-#def left(message):
-#    leave_room(1)
-#    print("Left the room")
-#    emit('status', {'msg': 'You has left the room.'}, room=1)
+
+@socketio.on('joined', namespace='/ws')
+def joined(message):
+    print(message)
+    join_room(1)
+    emit('status', {'msg': 'you has entered the room.'}, room=1)
+@socketio.on('text', namespace='/ws')
+def text(message):
+    print(message)
+    emit('message', {'msg': message['msg']}, room=1)
+
+@socketio.on('left', namespace='/ws')
+def left(message):
+    leave_room(1)
+    print("Left the room")
+    emit('status', {'msg': 'You has left the room.'}, room=1)
