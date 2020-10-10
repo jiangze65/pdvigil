@@ -3,14 +3,14 @@
 {% block content %}
 <!--
 		var data = {
-			"pdchart_label":[], 
+			"pdchart_label":[],
 			"pdchart_data":[],
 			"pdchart_plotx":[],
 			"pdchart_ploty":[],
-			"wvchart_label":[], 
-			"wvart_data":[], 
-			"fftchart_label":[], 
-			"fftchart_data":[], 
+			"wvchart_label":[],
+			"wvart_data":[],
+			"fftchart_label":[],
+			"fftchart_data":[],
 			};
 -->
 <div class="tile is-ancestor">
@@ -28,7 +28,7 @@
 <div class="tile is-ancestor">
 		<div class="tile">
 		  <div class="chart-container information">
-			<table id="phase_points_table" class="table is-striped is-fullwidth" width: 100%>
+			<table id="phase_points_table" class="table is-striped is-fullwidth is-hoverable" width: 100%>
 			<colgroup>
 				<col span="1" style="width: 10%;">
 				<col span="1" style="width: 50%;">
@@ -50,7 +50,13 @@
 	};
 	var config = {responsive: true,'displaylogo': false};
 	loadChart('http://localhost:5000/pdv/api/v1.0/get_prpd', showPDChart);
-	
+
+	function removeClassFromElements(els, cls) {
+		for(let i = 0; i < els.length; i++) {
+			els[i].classList.remove(cls);
+		}
+	}
+
 	function loadTable(val)
 	{
 		var url= "http://localhost:5000/pdv/api/v1.0/get_phasepoints?".concat("selected=", val);
@@ -85,17 +91,19 @@
 		var rows = table.getElementsByTagName("tr");
 		for (i = 0; i < rows.length; i++) {
 			var currentRow = table.rows[i];
-		var createClickHandler = function(row) {
-		return function() {
-			var cell = row.getElementsByTagName("td")[0];
-			var id = cell.innerHTML;
-			loadWaveForm(id);
-		};
-		};
+		  var createClickHandler = function(row) {
+		    return function() {
+					removeClassFromElements(rows, "is-selected");
+			    var cell = row.getElementsByTagName("td")[0];
+			    var id = cell.innerHTML;
+			    row.classList.add("is-selected");
+			    loadWaveForm(id);
+		    };
+		  };
 		currentRow.onclick = createClickHandler(currentRow);
 		}
 	}
-	
+
 	function loadWaveForm(val)
 	{
 		var url= "http://localhost:5000/pdv/api/v1.0/get_waveform?".concat("selected=", val);
@@ -140,7 +148,7 @@
 		type: 'scatter'
 	  };
 	  var fftdata = [fftchart];
-	  
+
 	  Plotly.newPlot('fftchart', fftdata, config,{displaylogo: false});
 	}
 	function showPDChart(data)
@@ -170,7 +178,7 @@
 		}
 	  }
 	  var pddata = [pdchartTrace1, pdchartTrace2];
-	  
+
 	  Plotly.newPlot('pdchart', pddata, layout, config,{displaylogo: false});
       // create a callback function for updating the selected index on the chart
       var pdchart = document.getElementById("pdchart");
